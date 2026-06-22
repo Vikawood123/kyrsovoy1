@@ -1,0 +1,138 @@
+from django.db import models
+
+
+class Document(models.Model):
+    name = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'document'
+
+
+class Dogovor(models.Model):
+    rowid = models.IntegerField(primary_key=True, db_column='rowid')
+    proforg = models.TextField(db_column='profORG', blank=True, null=True)
+    adress = models.TextField(blank=True, null=True)
+    smart = models.TextField(blank=True, null=True)
+    rec = models.TextField(blank=True, null=True)
+    ryco = models.TextField(blank=True, null=True)
+    # Дополнительные поля для практики
+    practice_type = models.CharField(max_length=50, blank=True, null=True, verbose_name='Вид практики')
+    course = models.IntegerField(blank=True, null=True, verbose_name='Курс')
+    group_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Группа')
+    practice_start_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата начала практики')
+    practice_end_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата окончания практики')
+
+    class Meta:
+        managed = False
+        db_table = 'dogovor'
+
+
+class Harakteristika(models.Model):
+    rowid = models.IntegerField(primary_key=True, db_column='rowid')
+    fio = models.TextField(db_column='FIO', blank=True, null=True)
+    library = models.TextField(db_column='LIBRARY', blank=True, null=True)
+    day_begin = models.IntegerField(db_column='DAY_BEGIN', blank=True, null=True)
+    month_begin = models.IntegerField(db_column='MONTH_BEGIN', blank=True, null=True)
+    year_begin = models.IntegerField(db_column='YEAR_BEGIN', blank=True, null=True)
+    day_finish = models.IntegerField(db_column='DAY_FINISH', blank=True, null=True)
+    month_day = models.IntegerField(db_column='MONTH_DAY', blank=True, null=True)
+    year_finish = models.IntegerField(db_column='YEAR_FINISH', blank=True, null=True)
+    number = models.TextField(db_column='NUMBER', blank=True, null=True)
+    not_day_one = models.TextField(db_column='NOT_DAY_ONE', blank=True, null=True)
+    not_day_two = models.TextField(db_column='NOT_DAY_TWO', blank=True, null=True)
+    special = models.TextField(db_column='SPECIAL', blank=True, null=True)
+    good = models.TextField(db_column='GOOD', blank=True, null=True)
+    boss_organization = models.TextField(db_column='BOSS_ORGANIZATION', blank=True, null=True)
+    boss_position = models.TextField(db_column='BOSS_POSITION', blank=True, null=True)
+    # Дополнительные поля для практики
+    practice_type = models.CharField(max_length=50, blank=True, null=True, verbose_name='Вид практики')
+    course = models.IntegerField(blank=True, null=True, verbose_name='Курс')
+    group_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Группа')
+    practice_start_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата начала практики')
+    practice_end_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата окончания практики')
+
+    class Meta:
+        managed = False
+        db_table = 'harakteristika'
+
+
+class Listcontrol(models.Model):
+    rowid = models.IntegerField(primary_key=True, db_column='rowid')
+    gru = models.TextField(blank=True, null=True)
+    code = models.TextField(blank=True, null=True)
+    napra = models.TextField(blank=True, null=True)
+    data = models.TextField(blank=True, null=True)
+    rycspo = models.TextField(db_column='rycSPO', blank=True, null=True)
+    date = models.TextField(blank=True, null=True)
+    pred = models.TextField(blank=True, null=True)
+    rycp = models.TextField(db_column='rycP', blank=True, null=True)
+    fio = models.TextField(blank=True, null=True)
+    fioo = models.TextField(db_column='fioO', blank=True, null=True)
+    pri = models.TextField(blank=True, null=True)
+    # Дополнительные поля для практики
+    practice_type = models.CharField(max_length=50, blank=True, null=True, verbose_name='Вид практики')
+    course = models.IntegerField(blank=True, null=True, verbose_name='Курс')
+    practice_start_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата начала практики')
+    practice_end_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата окончания практики')
+
+    class Meta:
+        managed = False
+        db_table = 'listcontrol'
+
+
+class Prilogenie(models.Model):
+    rowid = models.IntegerField(primary_key=True, db_column='rowid')
+    modul = models.TextField(blank=True, null=True)
+    start = models.FloatField(blank=True, null=True)
+    stmo = models.FloatField(blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
+    final = models.FloatField(blank=True, null=True)
+    fnmo = models.FloatField(blank=True, null=True)
+    kod = models.TextField(blank=True, null=True)
+    name = models.TextField(blank=True, null=True)
+    akd = models.IntegerField(blank=True, null=True)
+    fio = models.TextField(blank=True, null=True)
+    date = models.TextField(blank=True, null=True)
+    fioruk = models.TextField(db_column='fioRuk', blank=True, null=True)
+    num = models.TextField(blank=True, null=True)
+    fioprofruk = models.TextField(db_column='fioProfRuk', blank=True, null=True)
+    doljnost = models.TextField(blank=True, null=True)
+    numprofruk = models.TextField(db_column='numProfRuk', blank=True, null=True)
+    org = models.TextField(blank=True, null=True)
+    ruk = models.TextField(blank=True, null=True)
+    fiootv = models.TextField(db_column='fioOtv', blank=True, null=True)
+    doljotv = models.TextField(db_column='doljOtv', blank=True, null=True)
+    numberotv = models.TextField(db_column='numberOtv', blank=True, null=True)
+    addres = models.TextField(blank=True, null=True)
+    year2 = models.IntegerField(blank=True, null=True)
+    namepomech = models.TextField(db_column='namePomech', blank=True, null=True)
+    # Дополнительные поля для практики
+    practice_type = models.CharField(max_length=50, blank=True, null=True, verbose_name='Вид практики')
+    course = models.IntegerField(blank=True, null=True, verbose_name='Курс')
+    group_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Группа')
+    practice_start_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата начала практики')
+    practice_end_date = models.CharField(max_length=50, blank=True, null=True, verbose_name='Дата окончания практики')
+
+    class Meta:
+        managed = False
+        db_table = 'prilogenie'
+
+
+class DocumentTemplate(models.Model):
+    name = models.CharField(max_length=200)
+    doc_type = models.CharField(max_length=50, choices=[
+        ('dogovor', 'Договор'),
+        ('harakteristika', 'Характеристика'),
+        ('listcontrol', 'Лист контроля'),
+        ('prilogenie', 'Приложение'),
+    ])
+    template_file = models.FileField(upload_to='templates/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = True
+        db_table = 'document_template'
+
+    def __str__(self):
+        return self.name
