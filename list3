@@ -1,0 +1,253 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import login, authenticate
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from docxtpl import DocxTemplate
+import os
+import json
+from datetime import datetime
+from django.db import models
+from .models import Document, Dogovor, Harakteristika, Listcontrol, Prilogenie, DocumentTemplate
+
+
+def register(request):
+    if request.method == "GET":
+        return render(request, "register.html", {"form": UserCreationForm()})
+    else:
+        if request.POST['password1'] == request.POST['password2']:
+            from django.contrib.auth.models import User
+            user = User.objects.create_user(
+                request.POST['username'],
+                password=request.POST['password1']
+            )
+            user.save()
+            login(request, user)
+            return redirect('/profile/')
+        else:
+            return render(request, "register.html", {
+                "form": UserCreationForm(),
+                "error": "Пароли не совпадают"
+            })
+
+
+def loginf(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Вы вошли как {username}')
+                return redirect('/profile/')
+            else:
+                messages.error(request, 'Неправильное имя пользователя или пароль')
+        else:
+            messages.error(request, 'Неправильное имя пользователя или пароль')
+    
+    form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+
+@login_required
+def profile(request):
+    documents = Document.objects.all()
+    dogovors = Dogovor.objects.all()
+    harakteristikas = Harakteristika.objects.all()
+    listcontrols = Listcontrol.objects.all()
+    prilogenies = Prilogenie.objects.all()
+    
+    context = {
+        'documents': documents,
+        'dogovors': dogovors,
+        'harakteristikas': harakteristikas,
+        'listcontrols': listcontrols,
+        'prilogenies': prilogenies,
+    }
+    return render(request, "profile.html", context)
+
+
+@login_required
+def generate_document(request, doc_type, record_id):
+    if doc_type == 'dogovor':
+        record = get_object_or_404(Dogovor, rowid=record_id)
+    elif doc_type == 'harakteristika':
+        record = get_object_or_404(Harakteristika, rowid=record_id)
+    elif doc_type == 'listcontrol':
+        record = get_object_or_404(Listcontrol, rowid=record_id)
+    elif doc_type == 'prilogenie':
+        record = get_object_or_404(Prilogenie, rowid=record_id)
+    else:
+        return HttpResponse('Ошибка: неверный тип документа')
+    
+    template_obj = DocumentTemplate.objects.filter(doc_type=doc_type).first()
+    if not template_obj:
+        return HttpResponse('Ошибка: нет шаблона для этого типа документа. Загрузите шаблон в админке.')
+    
+    template_path = os.path.join(settings.MEDIA_ROOT, template_obj.template_file.name)
+    
+    context = {}
+    for field in record._meta.fields:
+        value = getattr(record, field.name)
+        if value is not None:
+            context[field.name] = value
+        else:
+            context[field.name] = ''
+    
+    context['date_now'] = datetime.now().strftime('%d.%m.%Y')
+    
+    try:
+        doc = DocxTemplate(template_path)
+        doc.render(context)
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename="{doc_type}_{record_id}.docx"'
+        doc.save(response)
+        return response
+    except Exception as e:
+        return HttpResponse(f'Ошибка при генерации документа: {str(e)}')
+
+
+# Функции для СОЗДАНИЯ новых записей в базе
+@login_required
+@csrf_exempt
+def save_dogovor(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        max_rowid = Dogovor.objects.aggregate(models.Max('rowid'))['rowid__max'] or 0
+        new_rowid = max_rowid + 1
+        
+        dogovor = Dogovor(
+            rowid=new_rowid,
+            proforg=data.get('proforg', ''),
+            adress=data.get('adress', ''),
+            smart=data.get('smart', ''),
+            rec=data.get('rec', ''),
+            ryco=data.get('ryco', ''),
+            practice_type=data.get('practice_type', ''),
+            course=data.get('course'),
+            group_name=data.get('group_name', ''),
+            practice_start_date=data.get('practice_start_date', ''),
+            practice_end_date=data.get('practice_end_date', ''),
+        )
+        dogovor.save()
+        return JsonResponse({'status': 'ok', 'new_rowid': new_rowid})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def save_harakteristika(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        max_rowid = Harakteristika.objects.aggregate(models.Max('rowid'))['rowid__max'] or 0
+        new_rowid = max_rowid + 1
+        
+        har = Harakteristika(
+            rowid=new_rowid,
+            fio=data.get('fio', ''),
+            library=data.get('library', ''),
+            day_begin=data.get('day_begin'),
+            month_begin=data.get('month_begin'),
+            year_begin=data.get('year_begin'),
+            day_finish=data.get('day_finish'),
+            month_day=data.get('month_day'),
+            year_finish=data.get('year_finish'),
+            number=data.get('number', ''),
+            not_day_one=data.get('not_day_one', ''),
+            not_day_two=data.get('not_day_two', ''),
+            special=data.get('special', ''),
+            good=data.get('good', ''),
+            boss_organization=data.get('boss_organization', ''),
+            boss_position=data.get('boss_position', ''),
+            practice_type=data.get('practice_type', ''),
+            course=data.get('course'),
+            group_name=data.get('group_name', ''),
+            practice_start_date=data.get('practice_start_date', ''),
+            practice_end_date=data.get('practice_end_date', ''),
+        )
+        har.save()
+        return JsonResponse({'status': 'ok', 'new_rowid': new_rowid})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def save_listcontrol(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        max_rowid = Listcontrol.objects.aggregate(models.Max('rowid'))['rowid__max'] or 0
+        new_rowid = max_rowid + 1
+        
+        listc = Listcontrol(
+            rowid=new_rowid,
+            gru=data.get('gru', ''),
+            code=data.get('code', ''),
+            napra=data.get('napra', ''),
+            data=data.get('data', ''),
+            rycspo=data.get('rycspo', ''),
+            date=data.get('date', ''),
+            pred=data.get('pred', ''),
+            rycp=data.get('rycp', ''),
+            fio=data.get('fio', ''),
+            fioo=data.get('fioo', ''),
+            pri=data.get('pri', ''),
+            practice_type=data.get('practice_type', ''),
+            course=data.get('course'),
+            practice_start_date=data.get('practice_start_date', ''),
+            practice_end_date=data.get('practice_end_date', ''),
+        )
+        listc.save()
+        return JsonResponse({'status': 'ok', 'new_rowid': new_rowid})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+@csrf_exempt
+def save_prilogenie(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        max_rowid = Prilogenie.objects.aggregate(models.Max('rowid'))['rowid__max'] or 0
+        new_rowid = max_rowid + 1
+        
+        pril = Prilogenie(
+            rowid=new_rowid,
+            modul=data.get('modul', ''),
+            start=data.get('start'),
+            stmo=data.get('stmo'),
+            year=data.get('year'),
+            final=data.get('final'),
+            fnmo=data.get('fnmo'),
+            kod=data.get('kod', ''),
+            name=data.get('name', ''),
+            akd=data.get('akd'),
+            fio=data.get('fio', ''),
+            date=data.get('date', ''),
+            fioruk=data.get('fioruk', ''),
+            num=data.get('num', ''),
+            fioprofruk=data.get('fioprofruk', ''),
+            doljnost=data.get('doljnost', ''),
+            numprofruk=data.get('numprofruk', ''),
+            org=data.get('org', ''),
+            ruk=data.get('ruk', ''),
+            fiootv=data.get('fiootv', ''),
+            doljotv=data.get('doljotv', ''),
+            numberotv=data.get('numberotv', ''),
+            addres=data.get('addres', ''),
+            year2=data.get('year2'),
+            namepomech=data.get('namepomech', ''),
+            practice_type=data.get('practice_type', ''),
+            course=data.get('course'),
+            group_name=data.get('group_name', ''),
+            practice_start_date=data.get('practice_start_date', ''),
+            practice_end_date=data.get('practice_end_date', ''),
+        )
+        pril.save()
+        return JsonResponse({'status': 'ok', 'new_rowid': new_rowid})
+    return JsonResponse({'status': 'error'}, status=400)
