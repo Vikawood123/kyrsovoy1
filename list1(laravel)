@@ -1,0 +1,20 @@
+DELIMITER //
+
+
+CREATE TRIGGER before_insert_purchase
+BEFORE INSERT ON purchases
+FOR EACH ROW
+BEGIN
+    -- Если дата покупки не указана, ставим текущую дату
+    IF NEW.purchased_at IS NULL THEN
+        SET NEW.purchased_at = CURDATE();
+    END IF;
+    
+    -- Если дата истечения не указана, ставим текущую дату + 30 дней
+    IF NEW.expires_at IS NULL THEN
+        SET NEW.expires_at = DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+    END IF;
+END //
+
+
+DELIMITER ;
