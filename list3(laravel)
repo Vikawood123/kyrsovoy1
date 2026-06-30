@@ -1,0 +1,21 @@
+<?php
+
+
+namespace App\Http\Controllers\Admin;
+
+
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+
+
+class AdminController extends Controller
+{
+    public function stats()
+    {
+        // Вызов хранимой процедуры MySQL
+        $stats = DB::select('CALL getSalesStats()');
+        
+        // Передача результата в шаблон
+        return view('admin.stats', compact('stats'));
+    }
+}
