@@ -1,0 +1,44 @@
+<?php
+
+
+namespace App\Http\Controllers;
+
+
+use App\Models\Membership;
+use App\Models\Purchase;
+use Illuminate\Support\Facades\Auth;
+
+
+class MembershipController extends Controller
+{
+    // Страница со списком абонементов
+    public function index()
+    {
+        $memberships = Membership::where('is_active', true)->get();
+        return view('membership.index', compact('memberships'));
+    }
+    
+    // Обработка покупки абонемента
+    public function purchase(Request $request, $id)
+    {
+        $membership = Membership::findOrFail($id);
+        
+        // Проверка авторизации
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        // Создание записи о покупке
+        Purchase::create([
+            'user_id' => Auth::id(),
+            'membership_id' => $membership->id,
+            'price' => $membership->price,
+            'status' => 'paid',
+            'payment_method' => $request->payment_method,
+            'purchased_at' => now(),
+            'expires_at' => now()->addDays($membership->validity_days),
+        ]);
+        
+        return redirect()->route('membership.my')->with('success', 'Абонемент приобретён!');
+    }
+}
