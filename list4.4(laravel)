@@ -1,0 +1,9 @@
+public function purchase(Request $request, $id)
+{
+    // Проверка: авторизован ли пользователь
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Сначала войдите в систему');
+    }
+    
+    // Основная логика покупки...
+}
