@@ -1,0 +1,6 @@
+// Группа маршрутов с middleware 'auth'
+Route::middleware('auth')->group(function () {
+    Route::get('/my-memberships', [MembershipController::class, 'myMemberships']);
+    Route::get('/admin/bookings', [AdminController::class, 'bookings']);
+    Route::get('/admin/stats', [AdminController::class, 'stats']);
+});
