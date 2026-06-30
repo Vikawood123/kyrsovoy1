@@ -1,0 +1,18 @@
+DELIMITER //
+
+
+CREATE PROCEDURE getSalesStats()
+BEGIN
+    SELECT 
+        m.name AS membership_name,           -- Название абонемента
+        COUNT(p.id) AS total_sold,           -- Количество проданных штук
+        COALESCE(SUM(p.price), 0) AS total_revenue,   -- Общая выручка
+        COALESCE(AVG(p.price), 0) AS average_price    -- Средняя цена
+    FROM memberships m
+    LEFT JOIN purchases p ON m.id = p.membership_id AND p.status = 'paid'
+    GROUP BY m.id, m.name
+    ORDER BY total_sold DESC;
+END //
+
+
+DELIMITER ;
