@@ -1,0 +1,29 @@
+<?php
+
+
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\AdminController;
+
+
+// Публичные маршруты (доступны без авторизации)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule');
+Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+Route::post('/booking/submit', [BookingController::class, 'submit'])->name('booking.submit');
+Route::get('/membership', [MembershipController::class, 'index'])->name('membership');
+
+
+// Защищённые маршруты (только для авторизованных пользователей)
+Route::middleware('auth')->group(function () {
+    Route::get('/my-memberships', [MembershipController::class, 'myMemberships'])->name('membership.my');
+    Route::get('/admin/bookings', [AdminController::class, 'bookings'])->name('admin.bookings');
+    Route::delete('/admin/booking/{id}', [AdminController::class, 'destroy'])->name('admin.booking.delete');
+    Route::get('/admin/stats', [AdminController::class, 'stats'])->name('admin.stats');
+});
+
+
+// Маршруты аутентификации (вход, регистрация, выход)
+Auth::routes();
